@@ -1,3 +1,4 @@
+from influxdb import InfluxDBClient
 from app import app, db
 
 from flask import Flask, request
@@ -18,9 +19,12 @@ class GetDataApi(Resource):
 
     def post(self):
         args = parser.parse_args()
-        record =  Record(co2=args.get('co2'))
-        db.session.add(record)
-        db.session.commit()
+        influxdb = InfluxDBClient(host=app.config.get('INFLUXDB_HOST'), port=app.config.get('INFLUXDB_PORT'))
+        influxdb.switch_database(app.config.get('INFLUXDB_DB'))
+        influxdb.write_points([{'measurement': 'record', 'fields': {'co2': args.get('co2'), 'temp': 0, 'hum': 0}}])
+        #record =  Record(co2=args.get('co2'))
+        #db.session.add(record)
+        #db.session.commit()
         return '', 201
 
 
